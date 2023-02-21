@@ -1,7 +1,7 @@
 import numpy as np
 import cv2 as cv
-img = cv.imread('sodacanbottom.png',0)
-img = cv.medianBlur(img,5)
+img = cv.imread('/Users/pl251351/PycharmProjects/SodaCanProject/IMG_7806.mov',0)
+img = cv.medianBlur(img, 5)
 cimg = cv.cvtColor(img,cv.COLOR_GRAY2BGR)
 circles = cv.HoughCircles(img,cv.HOUGH_GRADIENT,1,200,
                             param1=50,param2=30,minRadius=0,maxRadius=0)

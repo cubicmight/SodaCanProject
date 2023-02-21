@@ -7,7 +7,7 @@ def nothing(x):
     # any operation
     pass
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(r"/Users/pl251351/PycharmProjects/SodaCanProject/IMG_7806.mov")
 
 cv2.namedWindow("Trackbars")
 cv2.createTrackbar("L-H", "Trackbars", 0, 180, nothing)
