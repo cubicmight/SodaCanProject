@@ -1,69 +1,54 @@
-# import the necessary packages
-import numpy as np
-import argparse
+import os
 import cv2
-import time
+import numpy as np
 
-cap = cv2.VideoCapture(
-    r"/Users/pl251351/PycharmProjects/SodaCanProject/IMG_7809.MOV")  # Set Capture Device, in case of a USB Webcam try 1, or give -1 to get a list of available devices
+basedir = os.path.abspath(os.path.dirname(__file__))
 
-# Set Width and Height
-# cap.set(3,1280)
-# cap.set(4,720)
+image_file_name = "videos/IMG_7834.MOV"
+full_image_path = os.path.join(basedir, image_file_name)
+if not os.path.exists(full_image_path):
+    print("cannot find image")
+    exit(-1)
 
-# The above step is to set the Resolution of the Video. The default is 640x480.
-# This example works with a Resolution of 640x480.
+cap = cv2.VideoCapture(full_image_path)
 
-while (True):
-    # Capture frame-by-frame
-    ret, frame = cap.read()
 
-    # load the image, clone it for output, and then convert it to grayscale
+def draw_circle():
+    global circles
+    circles = np.round(circles[0, :]).astype("int")
+    for (x, y, r) in circles:
+        cv2.circle(output, (x, y), r, (0, 255, 0), 4)
+        cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
 
+
+def find_circle():
+    global output, gray, circles
     output = frame.copy()
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-    # apply GuassianBlur to reduce noise. medianBlur is also added for smoothening, reducing noise.
     gray = cv2.GaussianBlur(gray, (5, 5), 0);
     gray = cv2.medianBlur(gray, 5)
-
-    # Adaptive Guassian Threshold is to detect sharp edges in the Image. For more information Google it.
     gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, \
                                  cv2.THRESH_BINARY, 11, 3.5)
-
-    kernel = np.ones((3,3),np.uint8)
+    kernel = np.ones((3, 3), np.uint8)
     gray = cv2.erode(gray, kernel, iterations=1)
-    # gray = erosion
-
     gray = cv2.dilate(gray, kernel, iterations=1)
-    # gray = dilation
+    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 200, param1=30, param2=45, minRadius=145, maxRadius=290)
 
-    # get the size of the final image
-    # img_size = gray.shape
-    # print img_size
 
-    # detect circles in the image
-    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 200, param1=30, param2=45, minRadius=0, maxRadius=150)
-    # print circles
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        exit(-1)
 
-    # ensure at least some circles were found
+    find_circle()
+
     if circles is not None:
-        # convert the (x, y) coordinates and radius of the circles to integers
-        circles = np.round(circles[0, :]).astype("int")
+        draw_circle()
 
-        # loop over the (x, y) coordinates and radius of the circles
-        for (x, y, r) in circles:
-            # draw the circle in the output image, then draw a rectangle in the image
-            # corresponding to the center of the circle
-            cv2.circle(output, (x, y), r, (0, 255, 0), 4)
-            cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
-            # time.sleep(0.5)
-        # Display the resulting frame
         cv2.imshow('gray', gray)
     cv2.imshow('frame', output)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-# When everything done, release the capture
 cap.release()
 cv2.destroyAllWindows()
